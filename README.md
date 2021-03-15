@@ -1,5 +1,6 @@
 # RecyclerViewImageDynamic
 
+- `gradle`
 ```gradle
 //maven { url 'https://jitpack.io' }
 implementation 'com.github.gzeinnumer:EasyExternalDirectoryAndroid:2.2.0'
