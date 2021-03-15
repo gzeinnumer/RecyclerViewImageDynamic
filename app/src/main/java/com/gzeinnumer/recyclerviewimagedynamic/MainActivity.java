@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.Toast;
@@ -17,6 +18,11 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.gzeinnumer.eeda.helper.FGFile;
 import com.gzeinnumer.eeda.helper.imagePicker.FileCompressor;
+import com.gzeinnumer.rab.base.BaseBuilderAdapter;
+import com.gzeinnumer.rab.helper.BindViewHolder;
+import com.gzeinnumer.rab.singleType.AdapterBuilder;
+import com.gzeinnumer.rab.singleType.AdapterCreator;
+import com.gzeinnumer.recyclerviewimagedynamic.databinding.ItemRvBinding;
 
 import java.io.File;
 import java.io.IOException;
@@ -26,9 +32,10 @@ import java.util.Date;
 
 public class MainActivity extends AppCompatActivity {
 
-    DynamicImageAdapter adapter;
+    AdapterCreator<String> adapterRV;
     RecyclerView recyclerView;
     Button getAllData;
+    ArrayList<String> arrayList = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,34 +44,48 @@ public class MainActivity extends AppCompatActivity {
 
         getAllData = findViewById(R.id.getAllData);
         recyclerView = findViewById(R.id.recyclerView);
-
-        ArrayList<String> arrayList = new ArrayList<>();
-
-        adapter = new DynamicImageAdapter(arrayList);
-        adapter.setOnClickListener(new DynamicImageAdapter.OnItemClick() {
-            @Override
-            public void onItemClick(int position, String data, ImageView btn) {
-                dispatchTakePictureIntent(btn);
-            }
-        });
-
-        adapter.add();
-
-        recyclerView.setAdapter(adapter);
-        recyclerView.hasFixedSize();
-        recyclerView.setLayoutManager(new LinearLayoutManager(getApplicationContext()));
+        initAdapter();
 
         getAllData.setOnClickListener(v -> initGetDataPerIndex());
+    }
+
+    private void initAdapter() {
+
+        arrayList.add("1");
+        AdapterCreator<String> adapter = new AdapterBuilder<String>(R.layout.item_rv)
+                .setList(arrayList)
+                .onBind(new BindViewHolder<String>() {
+                    @Override
+                    public void bind(AdapterCreator<String> adapter, View holder, String data, int position) {
+                        //adapter.notifyDataSetChanged();
+                        adapterRV = adapter;
+
+                        //R.layout.rv_item = RvItemBinding
+                        ItemRvBinding bindingItem = ItemRvBinding.bind(holder);
+
+                        bindingItem.btn.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                dispatchTakePictureIntent(bindingItem.btn);
+                            }
+                        });
+                    }
+                });
+
+        recyclerView.setAdapter(adapter);
+
+        recyclerView.hasFixedSize();
+        recyclerView.setLayoutManager(new LinearLayoutManager(getApplicationContext()));
     }
 
     private void initGetDataPerIndex() {
         String str = "";
 
-        int countItem = adapter.getItemCount();
+        int countItem = adapterRV.getItemCount();
 
-        for (int i=0; i<countItem; i++){
-            DynamicImageAdapter.MyHolder holder = (DynamicImageAdapter.MyHolder) recyclerView.findViewHolderForAdapterPosition(i);
-            str += i +"_";
+        for (int i = 0; i < countItem; i++) {
+            BaseBuilderAdapter.MyHolder holder = (BaseBuilderAdapter.MyHolder) recyclerView.findViewHolderForAdapterPosition(i);
+            str += i + "_";
         }
 
         Toast.makeText(this, str, Toast.LENGTH_SHORT).show();
@@ -118,7 +139,8 @@ public class MainActivity extends AppCompatActivity {
                     mPhotoFile = mCompressor.compressToFile(mPhotoFile);
                     Glide.with(MainActivity.this).load(mPhotoFile).into(imageView);
                     Toast.makeText(this, "Image Path : " + mPhotoFile.toString(), Toast.LENGTH_SHORT).show();
-                    adapter.add();
+                    arrayList.add("");
+                    adapterRV.setList(arrayList);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }

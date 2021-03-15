@@ -1,5 +1,11 @@
 # RecyclerViewImageDynamic
 
+```gradle
+//maven { url 'https://jitpack.io' }
+implementation 'com.github.gzeinnumer:EasyExternalDirectoryAndroid:2.2.0'
+implementation 'com.github.gzeinnumer:RecyclerViewAdapterBuilder:2.2.0'
+```
+
  - Take Image From Camera [Tutorial](https://github.com/gzeinnumer/EasyExternalDirectoryAndroid/blob/master/README_4.md#take-image-from-camera-and-compress)
 
 - `item_rv.xml`
@@ -21,85 +27,86 @@
 </LinearLayout>
 ```
 
-- `DynamicImageAdapter.java`
+- [MainActivity.java](https://github.com/gzeinnumer/RecyclerViewImageDynamic/blob/master/app/src/main/java/com/gzeinnumer/recyclerviewimagedynamic/MainActivity.java)
 ```java
-public class DynamicImageAdapter extends RecyclerView.Adapter<DynamicImageAdapter.MyHolder> {
 
-    private OnItemClick click;
+public class MainActivity extends AppCompatActivity {
 
-    public interface OnItemClick {
-        void onItemClick(int position, String data, ImageView btn);
-    }
+    private AdapterCreator<String> adapterRV;
 
-    public void setOnClickListener(OnItemClick onClick) {
-        click = onClick;
-    }
-
-    public ArrayList<String> list;
-
-    public DynamicImageAdapter(ArrayList<String> list) {
-        this.list = list;
-    }
-
-    public void add() {
-        list.add("");
-        notifyItemInserted(list.size() - 1);
-    }
-
-    @NonNull
-    @Override
-    public MyHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        return new MyHolder(LayoutInflater.from(parent.getContext()).inflate(R.layout.item_rv, parent, false));
-    }
+    private ArrayList<String> arrayList = new ArrayList<>();
 
     @Override
-    public void onBindViewHolder(@NonNull MyHolder holder, int position) {
-        holder.bindData(list.get(position));
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
 
-        holder.itemView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                click.onItemClick(position, "", holder.btn);
-            }
-        });
+        ...
+
+        initAdapter();
     }
 
-    @Override
-    public int getItemCount() {
-        return list.size();
+    private void initAdapter() {
+        arrayList.add("1");
+        AdapterCreator<String> adapter = new AdapterBuilder<String>(R.layout.item_rv)
+                .setList(arrayList)
+                .onBind(new BindViewHolder<String>() {
+                    @Override
+                    public void bind(AdapterCreator<String> adapter, View holder, String data, int position) {
+                        //adapter.notifyDataSetChanged();
+                        adapterRV = adapter;
+
+                        //R.layout.rv_item = RvItemBinding
+                        ItemRvBinding bindingItem = ItemRvBinding.bind(holder);
+
+                        bindingItem.btn.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                dispatchTakePictureIntent(bindingItem.btn);
+                            }
+                        });
+                    }
+                });
+
+        recyclerView.setAdapter(adapter);
+
+        recyclerView.hasFixedSize();
+        recyclerView.setLayoutManager(new LinearLayoutManager(getApplicationContext()));
     }
 
-    public static class MyHolder extends RecyclerView.ViewHolder {
+    private void initGetDataPerIndex() {
+        String str = "";
 
-        public ImageView btn;
+        int countItem = adapterRV.getItemCount();
 
-        public MyHolder(@NonNull View itemView) {
-            super(itemView);
-            btn = itemView.findViewById(R.id.btn);
+        for (int i=0; i<countItem; i++){
+            BaseBuilderAdapter.MyHolder holder = (BaseBuilderAdapter.MyHolder) recyclerView.findViewHolderForAdapterPosition(i);
+            str += i +"_";
         }
 
-        public void bindData(String s) {
+        Toast.makeText(this, str, Toast.LENGTH_SHORT).show();
+    }
 
-        }
+    private ImageView imageView;
+    private static final int REQUEST_TAKE_PHOTO = 2;
+    private File mPhotoFile;
+    private FileCompressor mCompressor;
+
+    @SuppressLint("QueryPermissionsNeeded")
+    private void dispatchTakePictureIntent(ImageView btn) {
+        imageView = btn;
+
+        ...
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        ...
+
+                    Glide.with(MainActivity.this).load(mPhotoFile).into(imageView);
+        ...
     }
 }
-```
-
-- `MainActivity.java`
-```java
-adapter = new DynamicImageAdapter(arrayList);
-adapter.setOnClickListener(new DynamicImageAdapter.OnItemClick() {
-    @Override
-    public void onItemClick(int position, String data, ImageView btn) {
-        dispatchTakePictureIntent(btn);
-    }
-});
-
-adapter.add();
-
-recyclerView.setAdapter(adapter);
-recyclerView.hasFixedSize();
-recyclerView.setLayoutManager(new LinearLayoutManager(getApplicationContext()));
 ```
 
 |![](https://github.com/gzeinnumer/RecyclerViewImageDynamic/blob/master/preview/example1.jpg)|![](https://github.com/gzeinnumer/RecyclerViewImageDynamic/blob/master/preview/example2.jpg)|![](https://github.com/gzeinnumer/RecyclerViewImageDynamic/blob/master/preview/example3.jpg)|
