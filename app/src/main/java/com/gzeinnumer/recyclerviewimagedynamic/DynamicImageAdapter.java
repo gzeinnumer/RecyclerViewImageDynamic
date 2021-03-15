@@ -10,7 +10,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.ArrayList;
 
-public class DynamicAdapter  extends RecyclerView.Adapter<DynamicAdapter.MyHolder> {
+public class DynamicImageAdapter extends RecyclerView.Adapter<DynamicImageAdapter.MyHolder> {
 
     private OnItemClick click;
 
@@ -24,7 +24,7 @@ public class DynamicAdapter  extends RecyclerView.Adapter<DynamicAdapter.MyHolde
 
     public ArrayList<String> list;
 
-    public DynamicAdapter(ArrayList<String> list) {
+    public DynamicImageAdapter(ArrayList<String> list) {
         this.list = list;
     }
 
